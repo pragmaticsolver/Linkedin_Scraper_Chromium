@@ -14,7 +14,9 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.19.0",
+    "connect-timeout": "^1.9.0",
     "consolidate": "^0.16.0",
+    "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
     "http": "0.0.1-security",
     "jsonfile": "^6.1.0",
