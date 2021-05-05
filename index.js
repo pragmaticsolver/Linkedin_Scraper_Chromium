@@ -87,13 +87,11 @@ const PRO_CHAT_PROFILE_NAME_SELECTOR = '.nowrap-ellipsis';
 const NORMAL_CHATBOX_SCROLL_SELECTOR = '.msg-conversations-container__conversations-list';
 const PRO_CHATBOX_SCROLL_SELECTOR = '.overflow-y-auto.overflow-hidden.flex-grow-1';
 
-
 // Special Process
 const MESSAGEBOX_LIST_SELECTOR = '.msg-conversation-listitem';
 const MESSAGEBOX_CONTAINER_SELECTOR = '.msg-form__contenteditable';
 const MESSAGE_SUBMIT_BTN_SELECTOR = '.msg-form__send-button';
 const MESSAGEBOX_LIST_CONTAINER_SELECTOR = '.msg-conversations-container__conversations-list';
-
 
 let warnmsg = '';
 let loginFailedFlag = false;
@@ -107,7 +105,7 @@ let password = '';
 async function startBrowser() {
     browser = await puppeteer.launch({
         product: 'firefox',
-        headless: false,    //  set as false to open a chromium
+        headless: true,    //  set as false to open a chromium
         ignoreDefaultArgs: ["--enable-automation"],
         defaultViewport: null,
         args: ["--no-sandbox",
@@ -139,7 +137,7 @@ const delay = (ms) => {
 async function getCookies() {
 
     await delay(2000);
-    await page.screenshot({ path: 'linkedin.png' });
+    // await page.screenshot({ path: 'linkedin.png' });
     var data = await page._client.send('Network.getAllCookies');
 
     if (data.cookies) {
@@ -454,40 +452,6 @@ async function handleProcess3(p_urls, res) {
     }
 }
 
-// async function recursiveFunc(message_count, startNum, msgSentCnt, messageContainers) {
-
-//     for (let i = startNum; i < messageContainers.length; i++) {
-
-//         let messageContainer = messageContainers[i];
-//         await messageContainer.$eval(TRIGGER_MSGBOX_SELECTOR, i => i.click());
-//         await delay(2000);
-
-//         if (await page.$(IS_EMPTY_MSGBOX_CHECK_SELECTOR) !== null) {
-//             break;
-//         } else {
-
-//             msgSentCnt++;
-//             await page.click(ACTIVE_MSGBOX_INPUT_SELECTOR);
-//             await page.keyboard.type(message);
-//             await page.keyboard.press('Enter');
-//             await delay(1000);
-//             await page.click(CLOSE_MSGBOX_SELECTOR);
-//             await delay(2000);
-//         }
-//         if (msgSentCnt == message_count) break;
-//     }
-
-//     startNum = messageContainers.length;
-//     if (msgSentCnt == message_count) {
-//         return;
-//     } else {
-
-//         await autoScroll(page);
-//         recursiveFunc(startNum);
-//     }
-// }
-
-
 async function handleProcess4(term, count, message, res) {
 
     await playTest("https://www.linkedin.com/login", res);
@@ -693,8 +657,7 @@ async function handleProcess8(type, person, res) {
                     const chatBoxItems = await page.$$(NORMAL_CHATBOX_LIST_SELECTOR);
                     console.log("possible chat history counts", chatBoxItems.length);
 
-                    let scrollTimes = 1;
-                    for (let i = 0; i < chatBoxItems.length; i++) {
+                    for (let i = 0; i < 9; i++) {
 
                         let chatBoxItem = chatBoxItems[i];
                         await chatBoxItem.$eval(NORMAL_CHATBOX_ITEM_SELECTOR, i => i.click());
@@ -737,7 +700,6 @@ async function handleProcess8(type, person, res) {
                                 textArr.push(profileItemObj);
                                 console.log("time: ", timeInfo)
 
-
                             } catch (e) {
 
                                 if (await chatHistoryElm.$(NORMAL_CHATHISTORY_TEXT_SELECTOR)) {
@@ -757,201 +719,17 @@ async function handleProcess8(type, person, res) {
                                 } else {
                                     console.log("no text");
                                 }
-
                             }
                             iterateCnt++;
                         }
 
                         historyArr.push(textArr)
 
-                        if (i == 8 || i == 16) {
-
-                            if (scrollTimes == 1) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 1;
-
-                                }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(4000);
-                                await page.screenshot({ path: 'LouisError_first.png' });
-
-                            } else if (scrollTimes == 2) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 2;
-
-                                }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(3000);
-
-                                await page.screenshot({ path: 'LouisError_second_re.png' });
-
-                            }
-                            console.log("scroll times after scrolling", scrollTimes)
-                            scrollTimes++;
-
-                        }
                         let chatHistory = {};
                         chatHistory["name"] = profileName;
                         chatHistory["url"] = profileLink;
                         chatHistory["ChatHistory"] = historyArr;
                         chatHistoryArr.push(chatHistory);
-
-                    }
-
-                    const newchatBoxItems = await page.$$(NORMAL_CHATBOX_LIST_SELECTOR);
-                    console.log("possible chat history counts", newchatBoxItems.length);
-
-                    for (let i = 20; i < newchatBoxItems.length; i++) {
-
-                        let newchatBoxItem = newchatBoxItems[i];
-                        await newchatBoxItem.$eval(NORMAL_CHATBOX_ITEM_SELECTOR, i => i.click());
-                        await delay(2000);
-                        const newchatHistoryContainers = await page.$$(NORMAL_CHATHISTORY_ITEM_SELECTOR);
-                        let profileLink = await page.$$eval(NORMAL_CHAT_PROFILE_SELECTOR, el => el.map(x => x.getAttribute("href")));
-                        console.log("profileLink: ", profileLink);
-
-                        let profileName = await newchatBoxItem.$eval(NORMAL_CHAT_PROFILE_NAME_SELECTOR, i => i.innerHTML);
-                        // profileName = profileName.replace(/\s/g, '');
-                        profileName = profileName.trim();
-                        console.log("profileName: ", profileName);
-
-                        let historyArr = [];
-                        let iterateCnt = 0;
-                        let textArr = [];
-
-                        for (let j = 0; j < newchatHistoryContainers.length; j++) {
-                            let chatHistoryElm = newchatHistoryContainers[j];
-                            let profileItemObj = {};
-
-                            try {
-                                let timeInfo = await chatHistoryElm.$eval(NORMAL_CHATHISTORY_TIME_SELECTOR, i => i.innerHTML);
-                                timeInfo = timeInfo.trim();
-                                let profileInfo = await chatHistoryElm.$eval(NORMAL_CHATHISTORY_PROFILE_SELECTOR, i => i.innerHTML);
-                                var text = '';
-                                if (await chatHistoryElm.$(NORMAL_CHATHISTORY_TEXT_SELECTOR)) {
-                                    text = await chatHistoryElm.$eval(NORMAL_CHATHISTORY_TEXT_SELECTOR, i => i.innerHTML);
-                                    text = text.replace('<!---->', '');
-                                }
-
-                                profileInfo = profileInfo.trim();
-                                console.log("i  value: ", i)
-                                console.log("J  value: ", j)
-                                console.log("time: ", timeInfo)
-                                profileItemObj['name'] = profileInfo;
-                                profileItemObj['time'] = timeInfo;
-                                profileItemObj['message'] = text
-                                textArr.push(profileItemObj);
-
-
-                            } catch (e) {
-
-                                if (await chatHistoryElm.$(NORMAL_CHATHISTORY_TEXT_SELECTOR)) {
-
-                                    var text = await chatHistoryElm.$eval(NORMAL_CHATHISTORY_TEXT_SELECTOR, i => i.innerHTML);
-                                    text = text.replace('<!---->', '');
-                                    console.log("i  value in catch: ", i)
-                                    if (iterateCnt === 0) {
-                                        profileItemObj['name'] = profileName;
-                                        profileItemObj['message'] = text
-                                        textArr.push(profileItemObj);
-                                    }
-                                    else {
-                                        profileItemObj['message'] = text
-                                        textArr.push(profileItemObj);
-                                    }
-                                } else {
-                                    console.log("no text");
-                                }
-
-                            }
-                            iterateCnt++;
-                        }
-
-                        historyArr.push(textArr)
-
-                        if (i == 25 || i == 33) {
-
-                            if (scrollTimes == 3) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 3;
-
-                                }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(4000);
-
-
-                                for (let m = 0; m < 6; m++) {
-
-                                    await page.evaluate(selector => {
-
-                                        const scrollableSection = document.querySelector(selector);
-                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 2;
-
-                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                    await delay(3000);
-
-                                    await page.evaluate(selector => {
-
-                                        const scrollableSection = document.querySelector(selector);
-                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 3;
-
-                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                    await delay(3000);
-                                }
-
-
-
-                                console.log("third normal scroll")
-                                await page.screenshot({ path: 'scrollError_third.png' });
-
-                            } else if (scrollTimes == 4) {
-
-                                console.log("fourth scrolling")
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 4;
-
-                                }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(3000);
-
-
-                                for (let m = 0; m < 6; m++) {
-
-                                    await page.evaluate(selector => {
-
-                                        const scrollableSection = document.querySelector(selector);
-                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 3;
-
-                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                    await delay(3000);
-
-                                    await page.evaluate(selector => {
-
-                                        const scrollableSection = document.querySelector(selector);
-                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 4;
-
-                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                    await delay(3000);
-                                }
-
-
-                            }
-                            console.log("scroll times after scrolling", scrollTimes)
-                            scrollTimes++;
-                        }
-                        let chatHistory = {};
-                        chatHistory["name"] = profileName;
-                        chatHistory["url"] = profileLink;
-                        chatHistory["ChatHistory"] = historyArr;
-                        chatHistoryArr.push(chatHistory);
-
                     }
                 }
 
@@ -959,7 +737,7 @@ async function handleProcess8(type, person, res) {
 
             }
             let _data = JSON.stringify(chatHistoryArr);
-            fs.writeFileSync(type + '.json', _data);
+            fs.writeFileSync('results/' + type + '.json', _data);
 
             console.log("Normal Inbox success!")
             return res.status(200).json({ status: 'success', info: chatHistoryArr }).end();
@@ -977,12 +755,13 @@ async function handleProcess8(type, person, res) {
                     const chatBoxItems = await page.$$(CHATBOX_LIST_SELECTOR);
                     console.log("possible Pro chat history counts", chatBoxItems.length);
 
-                    let scrollTimes = 1;
                     for (let i = 0; i < chatBoxItems.length; i++) {
+
+                        // await page.screenshot({ path: 'item' + i + '.png' });
 
                         let chatBoxItem = chatBoxItems[i];
                         await chatBoxItem.$eval(CHATBOX_ITEM_SELECTOR, i => i.click());
-                        await delay(2000);
+                        await delay(8000);
                         const chatHistoryContainers = await page.$$(PRO_CHATHISTORY_ONEITEM_SELECTOR);
                         let profileLink = await page.$$eval(PRO_CHAT_PROFILE_SELECTOR, el => el.map(x => x.getAttribute("href")));
                         console.log("PRO profileLink: ", profileLink);
@@ -1054,186 +833,20 @@ async function handleProcess8(type, person, res) {
 
                         historyArr.push(textArr)
 
-                        if (i == 5 || i == 10 || i == 16) {
-
-                            if (scrollTimes == 1) {
-
-
-                                console.log("first sales scroll")
-                                await page.screenshot({ path: 'sales_first.png' });
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 1;
-
-                                }, PRO_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
-
-                            } else if (scrollTimes == 2) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 2;
-
-                                }, PRO_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
-
-                            } else if (scrollTimes == 3) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 3;
-
-                                }, PRO_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
-
-                            }
-
-                            console.log("scroll times after scrolling", scrollTimes)
-                            scrollTimes++;
-                        }
-
                         let chatHistory = {};
                         chatHistory["name"] = profileName;
                         chatHistory["url"] = profileLink;
-                        chatHistory["text"] = textArr;
-                        chatHistoryArr.push(chatHistory);
-                    }
-
-
-                    const newchatBoxItems = await page.$$(CHATBOX_LIST_SELECTOR);
-                    console.log("PRO chat history counts after scroll", newchatBoxItems.length);
-
-                    for (let i = 20; i < newchatBoxItems.length; i++) {
-
-                        let newchatBoxItem = newchatBoxItems[i];
-                        await newchatBoxItem.$eval(CHATBOX_ITEM_SELECTOR, i => i.click());
-                        await delay(2000);
-                        const newchatHistoryContainers = await page.$$(PRO_CHATHISTORY_ONEITEM_SELECTOR);
-                        let profileLink = await page.$$eval(PRO_CHAT_PROFILE_SELECTOR, el => el.map(x => x.getAttribute("href")));
-                        console.log("profileLink: ", profileLink);
-
-                        let profileName = await newchatBoxItem.$eval(PRO_CHAT_PROFILE_NAME_SELECTOR, i => i.innerHTML);
-                        // profileName = profileName.replace(/\s/g, '');
-                        profileName = profileName.trim();
-                        console.log("profileName: ", profileName);
-
-                        let historyArr = [];
-                        let iterateCnt = 0;
-                        let textArr = [];
-
-                        for (let j = 0; j < newchatHistoryContainers.length; j++) {
-
-                            let chatHistoryElm = newchatHistoryContainers[j];
-                            let profileItemObj = {};
-
-                            try {
-                                var dateInfo = ''
-                                if (await chatHistoryElm.$(PRO_CHATHISTORY_DATE_CONTAINER_SELECTOR)) {
-                                    dateInfo = await chatHistoryElm.$eval(PRO_CHATHISTORY_DATETIME_SELECTOR, i => i.innerHTML);
-                                    dateInfo = dateInfo.trim();
-                                }
-                                let timeInfo = await chatHistoryElm.$eval(PRO_CHATHISTORY_TIME_SELECTOR, i => i.innerHTML);
-                                timeInfo = timeInfo.trim();
-                                timeInfo = dateInfo + ' ' + timeInfo;
-                                console.log("overalltime: ", timeInfo)
-                                let profileInfo = await chatHistoryElm.$eval(PRO_CHATHISTORY_PROFILE_SELECTOR, i => i.innerHTML);
-
-                                var text = '';
-                                if (await chatHistoryElm.$(PRO_CHATHISTORY_TEXT_SELECTOR)) {
-                                    text = await chatHistoryElm.$eval(PRO_CHATHISTORY_TEXT_SELECTOR, i => i.innerHTML);
-                                    text = text.replace('<!---->', '');
-                                }
-
-                                profileInfo = profileInfo.trim();
-                                profileItemObj['name'] = profileInfo;
-                                profileItemObj['time'] = timeInfo;
-                                profileItemObj['message'] = text
-                                textArr.push(profileItemObj);
-
-                            } catch (e) {
-
-                                if (await chatHistoryElm.$(PRO_CHATHISTORY_TEXT_SELECTOR)) {
-
-                                    var text = await chatHistoryElm.$eval(PRO_CHATHISTORY_TEXT_SELECTOR, i => i.innerHTML);
-                                    text = text.replace('<!---->', '');
-                                    console.log("i  value in catch over 21: ", i)
-                                    if (iterateCnt === 0) {
-                                        profileItemObj['name'] = profileName;
-                                        profileItemObj['message'] = text
-                                        textArr.push(profileItemObj);
-                                    }
-                                    else {
-                                        profileItemObj['message'] = text
-                                        textArr.push(profileItemObj);
-                                    }
-                                } else {
-                                    console.log("no text");
-                                }
-
-
-
-                            }
-                            iterateCnt++;
-                        }
-
-                        historyArr.push(textArr)
-
-
-                        if (i == 20 || i == 25 || i == 31) {
-
-                            if (scrollTimes == 4) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 4;
-
-                                }, PRO_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
-
-                            } else if (scrollTimes == 5) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 5;
-
-                                }, PRO_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
-
-                            } else if (scrollTimes == 6) {
-
-                                await page.evaluate(selector => {
-
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 6;
-
-                                }, PRO_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
-
-                            }
-                            console.log("scroll times after scrolling", scrollTimes)
-                            scrollTimes++;
-                        }
-                        let chatHistory = {};
-                        chatHistory["name"] = profileName;
-                        chatHistory["url"] = profileLink;
-                        chatHistory["text"] = textArr;
+                        chatHistory["ChatHistory"] = historyArr;
                         chatHistoryArr.push(chatHistory);
 
                     }
-
                 }
 
             } else {
 
             }
             let _data = JSON.stringify(chatHistoryArr);
-            fs.writeFileSync(type + '.json', _data);
+            fs.writeFileSync('results/' + type + '.json', _data);
 
             console.log("Pro Inbox success!")
             return res.status(200).json({ status: 'success', info: chatHistoryArr }).end();

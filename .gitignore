@@ -2,4 +2,6 @@ err.log
 debug.log
 out.log
 
+results
+
 node_modules
