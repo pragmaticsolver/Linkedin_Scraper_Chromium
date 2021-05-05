@@ -115,10 +115,12 @@ async function startBrowser() {
             "--start-maximized",
             "--disable-gpu",
             "--no-sandbox",
-            "--disable-dev-profile"
+            "--disable-dev-profile",
+            "--window-size=1920,1080"
         ]
     });
     page = await browser.newPage();
+
     page.setUserAgent(
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4182.0 Safari/537.36"
     );
@@ -165,7 +167,11 @@ async function playTest(url, res) {
         await page.setDefaultNavigationTimeout(1800000);
         console.log(new Date().toLocaleString() + ': ', 'connecting login page ...');
         await page.goto(url);
-
+        await page.setViewport({
+            width: 1900,
+            height: 966
+        });
+        // await page.screenshot({ path: 'example.png', fullPage: true });
         await delay(2000);
         await playing(res);
 
@@ -758,7 +764,7 @@ async function handleProcess8(type, person, res) {
 
                         historyArr.push(textArr)
 
-                        if (i == 7 || i == 14) {
+                        if (i == 8 || i == 16) {
 
                             if (scrollTimes == 1) {
 
@@ -768,7 +774,8 @@ async function handleProcess8(type, person, res) {
                                     scrollableSection.scrollTop = scrollableSection.offsetHeight * 1;
 
                                 }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
+                                await delay(4000);
+                                await page.screenshot({ path: 'LouisError_first.png' });
 
                             } else if (scrollTimes == 2) {
 
@@ -778,12 +785,14 @@ async function handleProcess8(type, person, res) {
                                     scrollableSection.scrollTop = scrollableSection.offsetHeight * 2;
 
                                 }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
+                                await delay(3000);
+
+                                await page.screenshot({ path: 'LouisError_second_re.png' });
 
                             }
-
                             console.log("scroll times after scrolling", scrollTimes)
                             scrollTimes++;
+
                         }
                         let chatHistory = {};
                         chatHistory["name"] = profileName;
@@ -792,7 +801,6 @@ async function handleProcess8(type, person, res) {
                         chatHistoryArr.push(chatHistory);
 
                     }
-
 
                     const newchatBoxItems = await page.$$(NORMAL_CHATBOX_LIST_SELECTOR);
                     console.log("possible chat history counts", newchatBoxItems.length);
@@ -865,37 +873,74 @@ async function handleProcess8(type, person, res) {
 
                         historyArr.push(textArr)
 
-                        if (i == 20 || i == 27 || i == 35) {
+                        if (i == 25 || i == 33) {
 
                             if (scrollTimes == 3) {
 
                                 await page.evaluate(selector => {
 
                                     const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 2.8;
+                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 3;
 
                                 }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
+                                await delay(4000);
+
+
+                                for (let m = 0; m < 6; m++) {
+
+                                    await page.evaluate(selector => {
+
+                                        const scrollableSection = document.querySelector(selector);
+                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 2;
+
+                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
+                                    await delay(3000);
+
+                                    await page.evaluate(selector => {
+
+                                        const scrollableSection = document.querySelector(selector);
+                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 3;
+
+                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
+                                    await delay(3000);
+                                }
+
+
+
+                                console.log("third normal scroll")
+                                await page.screenshot({ path: 'scrollError_third.png' });
 
                             } else if (scrollTimes == 4) {
 
+                                console.log("fourth scrolling")
                                 await page.evaluate(selector => {
 
                                     const scrollableSection = document.querySelector(selector);
                                     scrollableSection.scrollTop = scrollableSection.offsetHeight * 4;
 
                                 }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
+                                await delay(3000);
 
-                            } else if (scrollTimes == 5) {
 
-                                await page.evaluate(selector => {
+                                for (let m = 0; m < 6; m++) {
 
-                                    const scrollableSection = document.querySelector(selector);
-                                    scrollableSection.scrollTop = scrollableSection.offsetHeight * 5;
+                                    await page.evaluate(selector => {
 
-                                }, NORMAL_CHATBOX_SCROLL_SELECTOR);
-                                await delay(2000);
+                                        const scrollableSection = document.querySelector(selector);
+                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 3;
+
+                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
+                                    await delay(3000);
+
+                                    await page.evaluate(selector => {
+
+                                        const scrollableSection = document.querySelector(selector);
+                                        scrollableSection.scrollTop = scrollableSection.offsetHeight * 4;
+
+                                    }, NORMAL_CHATBOX_SCROLL_SELECTOR);
+                                    await delay(3000);
+                                }
+
 
                             }
                             console.log("scroll times after scrolling", scrollTimes)
@@ -966,6 +1011,7 @@ async function handleProcess8(type, person, res) {
                                 timeInfo = timeInfo.trim();
                                 timeInfo = dateInfo + ' ' + timeInfo;
                                 console.log("overalltime: ", timeInfo)
+                                console.log("i  value in try: ", i)
                                 let profileInfo = await chatHistoryElm.$eval(PRO_CHATHISTORY_PROFILE_SELECTOR, i => i.innerHTML);
 
                                 var text = '';
@@ -1011,6 +1057,10 @@ async function handleProcess8(type, person, res) {
                         if (i == 5 || i == 10 || i == 16) {
 
                             if (scrollTimes == 1) {
+
+
+                                console.log("first sales scroll")
+                                await page.screenshot({ path: 'sales_first.png' });
 
                                 await page.evaluate(selector => {
 
