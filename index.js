@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const C = require('./constants');
 const swig = require('swig');
 const fs = require('fs');
+
 // Process 0
 const USERNAME_SELECTOR = '#username';
 const PASSWORD_SELECTOR = '#password';
@@ -20,6 +21,8 @@ const MEMBER_BTN_SELECTOR = '.entity-result__item .artdeco-button__text';
 const MEMBER_LINK_SELECTOR = '.app-aware-link';
 const MEMBER_NAME_SELECTOR = '.entity-result__content span[aria-hidden="true"]';
 const SEND_INVITATION_LIMIT_SELECTOR = '.ip-fuse-limit-alert__header';
+const PROFILE_CONNECT_BTN_SELECTOR = '.pvs-profile-actions__action.artdeco-button--primary';
+const CHECK_CONNECTED_BTN_SELECTOR = '.pv-top-card--reflow .pv-s-profile-actions--connect span'
 
 // Process 2
 const ACCEPT_MEMBER_LIST_SELECTOR = '.artdeco-list__item';
@@ -43,11 +46,14 @@ const PENDING_MEMBER_COUNT_SELECTOR = '#mn-invitation-manager__invitation-facet-
 // Process 4
 const NAVIGATOR_CONNECT_MEMBER_LIST_SELECTOR = '.search-results__result-item';
 const NAVIGATOR_CONNECT_MEMBER_DROPBOX_TRIGGER_SELECTOR = '[data-control-name="profile_result_actions_dropdown_trigger"]';
+const NAVIGATOR_CONNECT_MEMBER_DROPBOX_CONTAINER_SELECTOR = '.artdeco-dropdown__content--is-open';
 const NAVIGATOR_CONNECT_MEMBER_DROPBOX_SELECTOR = '.artdeco-dropdown__content-inner';
 const NAVIGATOR_CONNECT_OPTION_SELECTOR = '.result-lockup__connect';
 const NAVIGATOR_CONNECT_MESSAGEBOX_SELECTOR = '#connect-cta-form__invitation';
 const NAVIGATOR_CONNECT_MESSAGE_SEND_SELECTOR = '.connect-cta-form__send';
 const NAVIGATOR_CONNECT_OUT_INVITATIONS_SELECTOR = '.fuse-limit-alert__header';
+const NAVIGATOR_CONNECT_EMAILBOX_SELECTOR = '#connect-cta-form__email';
+const NAVIGATOR_DIALOG_CANCEL_BTN_SELECTOR = '.connect-cta-form__cancel';
 
 // Process 5
 const CHATBOX_LIST_SELECTOR = '.conversation-list-item';
@@ -72,26 +78,48 @@ const NORMAL_CHATHISTORY_PERSON_SELECTOR = '.msg-s-message-group__meta';
 const NORMAL_CHATHISTORY_TIME_SELECTOR = '.msg-s-message-group__timestamp';
 const NORMAL_CHATHISTORY_PROFILE_SELECTOR = '.msg-s-message-group__name';
 const NORMAL_CHATHISTORY_TEXT_SELECTOR = '.msg-s-event-listitem__body';
-
 const NORMAL_CHAT_PROFILE_SELECTOR = '.msg-thread__link-to-profile';
 const NORMAL_CHAT_PROFILE_NAME_SELECTOR = '.msg-conversation-listitem__participant-names';
-const PRO_CHATHISTORY_ONEITEM_SELECTOR = '.ember-view.flex.flex-column.flex-grow-1.flex-shrink-zero ul li';
+const NORMAL_CHAT_PROFILE_SUBTITLE_SELECTOR = '.artdeco-entity-lockup__subtitle';
+const NORMAL_LOCATION_SELECTOR = '.text-body-small.inline.t-black--light.break-words';
+
+const NORMAL_HISTORY_LIST_SELECTOR = '[data-control-name="background_details_company"]'
+const NORMAL_COMPANY_DETAILS_SELECTOR = '.pv-entity__company-details';
+const NORMAL_BACKGROUND_ROLE_SELECTOR = '.pv-entity__summary-info.pv-entity__summary-info--background-section h3';
+const NORMAL_BACKGROUND_COMPANY_SELECTOR = '.pv-entity__summary-info.pv-entity__summary-info--background-section .pv-entity__secondary-title'
+const NORMAL_HISTORY_INFO_MULTIROLES_COMPANY_SELECTOR = '.pv-entity__company-summary-info span:nth-child(2)';
+const NORMAL_HISTORY_INFO_MULTIROLES_ROLE_SELECTOR = '.pv-entity__position-group .pv-entity__position-group-role-item';
+
+const NORMAL_CONTACT_SELECTOR = '.pv-text-details__separator.t-black--light a';
+const NORMAL_CONTACT_EMAIL_SELECTOR = '.pv-contact-info__contact-type.ci-email a';
+const NORMAL_CONTACT_PHONE_SELECTOR = '.pv-contact-info__contact-type.ci-phone ul li span';
+const NORMAL_CONTACT_WEBSITE_SELECTOR = '.pv-contact-info__contact-type.ci-websites ul li';
+const NORMAL_CONTACT_WEBSITE_URL_SELECTOR = '.link-without-visited-state';
+const NORMAL_CONTACT_WEBSITE_TYPE_SELECTOR = '.t-14.t-black--light.t-normal';
+const NORMAL_CONTACT_IM_SELECTOR = '.pv-contact-info__contact-type.ci-ims ul li'
+const NORMAL_CONTACT_IM_ID_SELECTOR = '.pv-contact-info__contact-item.t-14.t-black.t-normal'
+const NORMAL_CONTACT_IM_TYPE_SELECTOR = '.t-14.t-black--light.t-normal'
+const NORMAL_CONTACT_TWITTER_SELECTOR = '.pv-contact-info__contact-type.ci-twitter a';
+const NORMAL_CONTACT_BIRTH_SELECTOR = '.pv-contact-info__contact-type.ci-birthday span';
+const NORMAL_CONTACT_WHENCONNECTED_SELECTOR = '.pv-contact-info__contact-type.ci-connected span';
+
+const PRO_CHATHISTORY_ONEITEM_SELECTOR = '.flex.flex-column.flex-grow-1.flex-shrink-zero ul li';
 const PRO_CHATHISTORY_DATE_CONTAINER_SELECTOR = '.message-item__date-boundary';
 const PRO_CHATHISTORY_DATETIME_SELECTOR = '.message-item__date-boundary time';
 const PRO_CHATHISTORY_TIME_SELECTOR = '.pl2.relative time';
 const PRO_CHATHISTORY_PROFILE_SELECTOR = 'address.t-bold span';
 const PRO_CHATHISTORY_TEXT_SELECTOR = '.white-space-pre-wrap';
-
 const PRO_CHAT_PROFILE_SELECTOR = '[data-control-name="view_profile"]';
+const PRO_CHAT_SUBTITLE_SELECTOR = '.artdeco-entity-lockup--size-3 .artdeco-entity-lockup__subtitle';
 const PRO_CHAT_PROFILE_NAME_SELECTOR = '.nowrap-ellipsis';
+const PRO_CHAT_CONVERSATION_INSIGHTS_LINK_SELECTOR = '.conversation-insights__section .artdeco-hoverable-trigger--content-placed-top a';
+const PRO_CONTACT_LOCATION_SELECTOR = '.profile-topcard__location-data.inline.t-14.t-black--light';
+const PRO_CONTACT_CONNECTED_DATE_SELECTOR = 'span.profile-topcard__connection-since'
+const PRO_CONTACT_RIGHT_MENU_SELECTOR = '.right-actions-overflow-menu-trigger';
+const PRO_CONTACT_VIEW_ON_LINKEDIN_SELECTOR = '[data-control-name="view_linkedin"]';
+
 const NORMAL_CHATBOX_SCROLL_SELECTOR = '.msg-conversations-container__conversations-list';
 const PRO_CHATBOX_SCROLL_SELECTOR = '.overflow-y-auto.overflow-hidden.flex-grow-1';
-
-// Special Process
-const MESSAGEBOX_LIST_SELECTOR = '.msg-conversation-listitem';
-const MESSAGEBOX_CONTAINER_SELECTOR = '.msg-form__contenteditable';
-const MESSAGE_SUBMIT_BTN_SELECTOR = '.msg-form__send-button';
-const MESSAGEBOX_LIST_CONTAINER_SELECTOR = '.msg-conversations-container__conversations-list';
 
 let warnmsg = '';
 let loginFailedFlag = false;
@@ -101,11 +129,14 @@ let browser;
 let page;
 let email = '';
 let password = '';
+var totalSentCnt = 0;
+var realProfileArr = [];
+var fakeProfileArr = [];
 
 async function startBrowser() {
     browser = await puppeteer.launch({
         product: 'firefox',
-        headless: true,    //  set as false to open a chromium
+        headless: false,    //  set as false to open a chromium
         ignoreDefaultArgs: ["--enable-automation"],
         defaultViewport: null,
         args: ["--no-sandbox",
@@ -114,7 +145,8 @@ async function startBrowser() {
             "--disable-gpu",
             "--no-sandbox",
             "--disable-dev-profile",
-            "--window-size=1920,1080"
+            "--start-maximized",
+            "--proxy-server=proxy-server.scraperapi.com:8001",
         ]
     });
     page = await browser.newPage();
@@ -166,7 +198,7 @@ async function playTest(url, res) {
         console.log(new Date().toLocaleString() + ': ', 'connecting login page ...');
         await page.goto(url);
         await page.setViewport({
-            width: 1900,
+            width: 1400,
             height: 966
         });
         // await page.screenshot({ path: 'example.png', fullPage: true });
@@ -201,74 +233,134 @@ async function handleIpProcess(ip_email, ip_code) {
 async function handleProcess1(term, count, res) {
 
     await playTest("https://www.linkedin.com/login", res);
-    let search_url = "https://www.linkedin.com/search/results/people/?geoUrn=%5B%22103644278%22%5D&keywords=" + term + "&origin=FACETED_SEARCH&page=1";
-    // https://www.linkedin.com/search/results/people/?geoUrn=%5B%22103644278%22%5D&keywords=marketing&origin=FACETED_SEARCH&page=2
+    count = parseInt(count)
+    console.log("starting process 1", count, term);
+
+    totalSentCnt = 0;
+    realProfileArr = [];
+    fakeProfileArr = [];
+
     if (!warnFlag) {
+        for (let pageNum = 1; pageNum < 40; pageNum++) {
+            let evalResultPage = await recursiveProcess1(term, count, res, pageNum);
+            console.log("page: ", evalResultPage)
+            if (evalResultPage === 'limitation') {
+                return res.status(200).json({ status: 'success', info: 'Completed With Limitations of Invitations', succeed: totalSentCnt, profile: realProfileArr }).end();
+            }
+            console.log("totalSentCnt", totalSentCnt)
+            console.log("count", count)
 
-        await page.goto(search_url);
-        await delay(5000);
-        if (await page.$$(SEND_CONNECT_BTN_DETECT_SELECTOR) !== null) {
+            if (totalSentCnt === count) break;
+        }
+        console.log("finish")
+        return res.status(200).json({ status: 'success', info: realProfileArr, fake: fakeProfileArr }).end();
+    }
 
-            console.log("starting process 1", count, term);
-            const memberContainers = await page.$$(MEMBER_CONTAINER_LIST_SELECTOR);
-            let profileArr = [];
-            let connectCnt = 0;
-            for (let i = 0; i < 10; i++) {
+}
 
-                console.log("total length: ", memberContainers.length)
-                let memberContainer = memberContainers[i];
-                let memberLinkVal = await memberContainer.$eval(MEMBER_LINK_SELECTOR, i => i.getAttribute('href'));
+async function recursiveProcess1(term, count, res, pageNum) {
 
-                if (await memberContainer.$(MEMBER_BTN_SELECTOR) !== null) {
-                    console.log("yes");
+    term = term.replace(/---/g, '&')
+    let search_url = "https://www.linkedin.com/search/results/people/?" + term + "&page=" + pageNum;
+    console.log("search_url: ", search_url)
+
+    await page.goto(search_url);
+    await delay(8000);
+    if (await page.$$(SEND_CONNECT_BTN_DETECT_SELECTOR) !== null) {
+
+        const memberContainers = await page.$$(MEMBER_CONTAINER_LIST_SELECTOR);
+        let profileArr = [];
+        let connectCnt = 0;
+        for (let i = 0; i < 10; i++) {
+
+            let memberContainer = memberContainers[i];
+            let memberLinkVal = await memberContainer.$eval(MEMBER_LINK_SELECTOR, i => i.getAttribute('href'));
+
+            if (await memberContainer.$(MEMBER_BTN_SELECTOR) !== null) {
+                console.log("yes");
+            } else {
+                console.log("no!");
+                continue;
+            }
+            let memberBtnVal = await memberContainer.$eval(MEMBER_BTN_SELECTOR, i => i.innerHTML);
+            let memberSpanVal = await memberContainer.$eval(MEMBER_NAME_SELECTOR, i => i.innerHTML);
+
+            memberBtnVal = memberBtnVal.replace(/\s/g, '');
+            memberSpanVal = memberSpanVal.replace('<!---->', '');
+            memberSpanVal = memberSpanVal.replace('<!---->', '');
+
+            if (memberBtnVal === 'Connect') {
+                connectCnt++;
+                let profileItem = {};
+                profileItem["name"] = memberSpanVal;
+                profileItem["URL"] = memberLinkVal;
+                profileArr.push(profileItem);
+            }
+        }
+
+        console.log("ProfileArray: ", profileArr);
+
+        var sentCnt = 0;
+        var fakeSentCnt = 0;
+        let sendConnectElms = await page.$x("//button[contains(., 'Connect')]");
+        var initialConnectCnt = sendConnectElms.length;
+
+        for (let i = 0; i < profileArr.length; i++) {
+            let currentProfile = profileArr[i].URL;
+            await page.goto(currentProfile);
+            await delay(4000);
+
+            if (await page.$(PROFILE_CONNECT_BTN_SELECTOR)) {
+
+                const inviteBtn_elm = await page.$(PROFILE_CONNECT_BTN_SELECTOR);
+                await inviteBtn_elm.click({ clickCount: 1 });
+                await delay(3000);
+                const sendNow_elm = await page.$(SEND_INVITE_BTN_SELECTOR);
+                if (sendNow_elm != null) {
+
+                    await sendNow_elm.click({ clickCount: 1 });
+                    await delay(5000);
+                    console.log("invite sent!");
                 } else {
-                    console.log("no!");
+                    console.log('special fake')
+                    fakeSentCnt++;
+                    fakeProfileArr.push(profileArr[i]);
                     continue;
                 }
-                let memberBtnVal = await memberContainer.$eval(MEMBER_BTN_SELECTOR, i => i.innerHTML);
-                let memberSpanVal = await memberContainer.$eval(MEMBER_NAME_SELECTOR, i => i.innerHTML);
 
-                memberBtnVal = memberBtnVal.replace(/\s/g, '');
-                memberSpanVal = memberSpanVal.replace('<!---->', '');
-                memberSpanVal = memberSpanVal.replace('<!---->', '');
-
-                if (memberBtnVal === 'Connect') {
-                    connectCnt++;
-                    let profileItem = {};
-                    profileItem["name"] = memberSpanVal;
-                    profileItem["URL"] = memberLinkVal;
-                    profileArr.push(profileItem);
+                if (await page.$(SEND_INVITATION_LIMIT_SELECTOR) !== null) {
+                    console.log("You've reached the weekly invitation limit");
+                    return "limitation";
                 }
-                console.log("count@@@", connectCnt)
-                if (connectCnt == count) break;
+                await delay(7000);
+                await page.goto(search_url);
+                await delay(7000);
+                let checkConnectElms = await page.$x("//button[contains(., 'Connect')]");
+                var checkConnectCnt = checkConnectElms.length;
+
+                console.log("checkConnectCnt: ", checkConnectCnt)
+                console.log("initialConnectCnt: ", initialConnectCnt)
+                console.log("fakeSentCnt: ", fakeSentCnt)
+                console.log("totalSentCnt: ", totalSentCnt)
+                console.log("i: ", i)
+
+                if (checkConnectCnt === (initialConnectCnt - (i - fakeSentCnt))) {
+                    fakeSentCnt++;
+                    fakeProfileArr.push(profileArr[i])
+                } else {
+                    sentCnt++;
+                    totalSentCnt++
+                    realProfileArr.push(profileArr[i]);
+                }
+
+                if (totalSentCnt === count) break;
+
             }
 
-            console.log("ProfileArray: ", profileArr);
-
-            const sendConnectElms = await page.$x("//button[contains(., 'Connect')]");
-
-            if (sendConnectElms.length > 0) {
-
-                for (let i = 1; i <= count; i++) {
-
-                    let sendConnectElm = sendConnectElms[i];
-                    await sendConnectElm.click();
-                    await delay(3000);
-
-                    const inviteBtn_elm = await page.$(SEND_INVITE_BTN_SELECTOR);
-                    await inviteBtn_elm.click({ clickCount: 1 });
-                    await delay(3000);
-                    console.log("invite sent!");
-                    if (await page.$(SEND_INVITATION_LIMIT_SELECTOR) !== null) {
-                        console.log("You've reached the weekly invitation limit");
-                        return res.status(200).json({ status: 'success', info: 'Completed With Limitations of Invitations' }).end();
-                    }
-                }
-            }
-
-            return res.status(200).json({ status: 'success', info: profileArr }).end();
         }
+        return "Finish " + pageNum + "evaluation";
     }
+
 }
 
 async function handleProcess2(approvalcount, messagecount, message, res) {
@@ -455,55 +547,88 @@ async function handleProcess3(p_urls, res) {
 async function handleProcess4(term, count, message, res) {
 
     await playTest("https://www.linkedin.com/login", res);
-    let nagivatorConnectURL = "https://www.linkedin.com/sales/search/people?doFetchHeroCard=false&excludeContactedLeads=true&excludeSavedLeads=true&geoIncluded=103644278&keywords=" + term + "&logHistory=true";
+    count = parseInt(count)
+    console.log("starting Process 4", count)
+
+    totalSentCnt = 0;
 
     if (!warnFlag) {
-        await page.goto(nagivatorConnectURL);
-        await delay(5000);
 
-        if (await page.$$(NAVIGATOR_CONNECT_MEMBER_LIST_SELECTOR) !== null) {
-
-            const navigatorConnectContainers = await page.$$(NAVIGATOR_CONNECT_MEMBER_LIST_SELECTOR);
-            console.log("starting Process 4", navigatorConnectContainers.length)
-
-            let navConnectCnt = 0;
-            for (let i = 0; i < navigatorConnectContainers.length; i++) {
-
-                let navigatorConnectContainer = navigatorConnectContainers[i];
-                await navigatorConnectContainer.$eval(NAVIGATOR_CONNECT_MEMBER_DROPBOX_TRIGGER_SELECTOR, i => i.click());
-                await delay(2000);
-                console.log("clicked1")
-                await navigatorConnectContainer.$eval(NAVIGATOR_CONNECT_MEMBER_DROPBOX_SELECTOR, i => i.click());
-                await delay(2000);
-                console.log("clicked2")
-                await navigatorConnectContainer.$eval(NAVIGATOR_CONNECT_OPTION_SELECTOR, i => i.click());
-                await delay(3000);
-                console.log("clicked3")
-                if (await page.$(NAVIGATOR_CONNECT_MESSAGEBOX_SELECTOR) !== null) {
-
-                    await page.click(NAVIGATOR_CONNECT_MESSAGEBOX_SELECTOR);
-                    await page.keyboard.type(message);
-
-                    const sendMsgBtn = await page.$(NAVIGATOR_CONNECT_MESSAGE_SEND_SELECTOR);
-                    await sendMsgBtn.click({ clickCount: 1 });
-                    await delay(1000);
-                    navConnectCnt++;
-                    console.log("navConnectCnt", navConnectCnt);
-                    if (await page.$(NAVIGATOR_CONNECT_OUT_INVITATIONS_SELECTOR) !== null) {
-                        return res.status(200).json({ status: 'success', info: 'Completed With Limitations of invitations' }).end();
-                    }
-                    if (navConnectCnt == count) break;
-                } else {
-                    console.log("continue");
-                    continue;
-                }
-
+        for (let pageNum = 1; pageNum < 30; pageNum++) {
+            let evalResultPage = await recursiveProcess4(term, count, message, pageNum, res);
+            console.log("page: ", evalResultPage)
+            if (evalResultPage === 'limitation') {
+                return res.status(200).json({ status: 'success', info: 'Completed With Limitations of Invitations', succeed: totalSentCnt }).end();
             }
-        }
+            console.log("totalSentCnt", totalSentCnt)
+            console.log("count", count)
 
+            if (totalSentCnt === count) break;
+        }
         console.log("wonderful navigator connection!")
         return res.status(200).json({ status: 'success', info: 'Completed' }).end();
     }
+}
+
+async function recursiveProcess4(term, count, message, pageNum, res) {
+
+    term = term.replace(/---/g, '&');
+    let navigatorConnectURL = "https://www.linkedin.com/sales/search/people?" + term + "&page=" + pageNum;
+    console.log("navigatorConnectURL: ", navigatorConnectURL);
+
+    await page.goto(navigatorConnectURL);
+    // await delay(8000);
+    await delay(10000);
+    await page.screenshot({ path: 'container.png' });
+
+    if (await page.$$(NAVIGATOR_CONNECT_MEMBER_LIST_SELECTOR) !== null) {
+
+        const navigatorConnectContainers = await page.$$(NAVIGATOR_CONNECT_MEMBER_LIST_SELECTOR);
+        let navConnectCnt = 0;
+        for (let i = 0; i < navigatorConnectContainers.length; i++) {
+
+            let navigatorConnectContainer = navigatorConnectContainers[i];
+
+            await navigatorConnectContainer.$eval(NAVIGATOR_CONNECT_MEMBER_DROPBOX_TRIGGER_SELECTOR, i => i.click());
+            await delay(2000);
+            console.log("clicked1", i)
+
+            const send_elm = await page.$(NAVIGATOR_CONNECT_OPTION_SELECTOR);
+            await send_elm.click({ clickCount: 1 });
+            await delay(2000);
+
+            if (await page.$(NAVIGATOR_CONNECT_MESSAGEBOX_SELECTOR) !== null) {
+
+                await page.click(NAVIGATOR_CONNECT_MESSAGEBOX_SELECTOR);
+                await page.keyboard.type(message);
+
+                if (await page.$(NAVIGATOR_CONNECT_EMAILBOX_SELECTOR) !== null) {
+                    console.log("email box is found");
+                    const cancelDialogBtn = await page.$(NAVIGATOR_DIALOG_CANCEL_BTN_SELECTOR);
+                    await cancelDialogBtn.click({ clickCount: 1 });
+                    await delay(3000);
+                    continue;
+                }
+
+                const sendMsgBtn = await page.$(NAVIGATOR_CONNECT_MESSAGE_SEND_SELECTOR);
+                await sendMsgBtn.click({ clickCount: 1 });
+                await delay(1000);
+                navConnectCnt++;
+                console.log("navConnectCnt", navConnectCnt);
+                if (await page.$(NAVIGATOR_CONNECT_OUT_INVITATIONS_SELECTOR) !== null) {
+                    console.log("You've reached the weekly invitation limit");
+                    return "limitation";
+                }
+                totalSentCnt++;
+                if (totalSentCnt === count) break;
+            } else {
+                console.log("continue");
+                continue;
+            }
+
+        }
+    }
+    return "Finish " + pageNum + "evaluation";
 }
 
 async function handleProcess5(count, message, res) {
@@ -662,14 +787,27 @@ async function handleProcess8(type, person, res) {
                         let chatBoxItem = chatBoxItems[i];
                         await chatBoxItem.$eval(NORMAL_CHATBOX_ITEM_SELECTOR, i => i.click());
                         await delay(2000);
+
+                        let msgUrl = await page.evaluate(() => document.location.href);
+                        msgUrl = msgUrl.replace('https://www.linkedin.com', '');
+
                         const chatHistoryContainers = await page.$$(NORMAL_CHATHISTORY_ITEM_SELECTOR);
-                        let profileLink = await page.$$eval(NORMAL_CHAT_PROFILE_SELECTOR, el => el.map(x => x.getAttribute("href")));
-                        console.log("profileLink: ", profileLink);
+                        let _profileLink = await page.$$eval(NORMAL_CHAT_PROFILE_SELECTOR, el => el.map(x => x.getAttribute("href")));
+                        let profileLink = _profileLink[0]
 
                         let profileName = await chatBoxItem.$eval(NORMAL_CHAT_PROFILE_NAME_SELECTOR, i => i.innerHTML);
                         profileName = profileName.trim();
                         // profileName = profileName.replace(/\s/g, '');
-                        console.log("profileName: ", profileName);
+
+                        let profileSubTitle = '';
+                        if (await page.$(NORMAL_CHAT_PROFILE_SUBTITLE_SELECTOR) != null) {
+                            let profileSubTitleElm = await page.$(NORMAL_CHAT_PROFILE_SUBTITLE_SELECTOR);
+                            profileSubTitle = await page.evaluate(profileSubTitleElm => profileSubTitleElm.textContent, profileSubTitleElm);
+                            profileSubTitle = profileSubTitle.trim();
+                            console.log("Subtitle: ", profileSubTitle);
+                        } else {
+                            profileSubTitle = 'Cannot find the title because you have not connected with this person';
+                        }
 
                         let historyArr = [];
                         let iterateCnt = 0;
@@ -692,13 +830,11 @@ async function handleProcess8(type, person, res) {
                                 }
 
                                 profileInfo = profileInfo.trim();
-                                console.log("i  value: ", i)
-                                console.log("J  value: ", j)
+
                                 profileItemObj['name'] = profileInfo;
                                 profileItemObj['time'] = timeInfo;
                                 profileItemObj['message'] = text
                                 textArr.push(profileItemObj);
-                                console.log("time: ", timeInfo)
 
                             } catch (e) {
 
@@ -706,7 +842,7 @@ async function handleProcess8(type, person, res) {
 
                                     var text = await chatHistoryElm.$eval(NORMAL_CHATHISTORY_TEXT_SELECTOR, i => i.innerHTML);
                                     text = text.replace('<!---->', '');
-                                    console.log("i  value in catch: ", i)
+                                    console.log("i  value in catch of normal version: ", i)
                                     if (iterateCnt === 0) {
                                         profileItemObj['name'] = profileName;
                                         profileItemObj['message'] = text
@@ -726,54 +862,285 @@ async function handleProcess8(type, person, res) {
                         historyArr.push(textArr)
 
                         let chatHistory = {};
+
                         chatHistory["name"] = profileName;
-                        chatHistory["url"] = profileLink;
+                        chatHistory["profile_url"] = profileLink;
+                        chatHistory['msg_url'] = msgUrl
+                        chatHistory["title"] = profileSubTitle;
                         chatHistory["ChatHistory"] = historyArr;
                         chatHistoryArr.push(chatHistory);
+
                     }
                 }
 
-            } else {
-
             }
-            let _data = JSON.stringify(chatHistoryArr);
+            let newChatHistoryArr = [];
+
+            for (let cnt = 0; cnt < chatHistoryArr.length; cnt++) {
+
+                let newChatHistory = chatHistoryArr[cnt];
+                newChatHistory['email'] = '';
+                newChatHistory['location'] = ''
+                newChatHistory['birthday'] = '';
+                newChatHistory['connected_date'] = '';
+                newChatHistory['twitter'] = '';
+                newChatHistory['phone'] = '';
+                newChatHistory['websites'] = [];
+                newChatHistory['im_contact'] = [];
+
+                let _profile_url = newChatHistory.profile_url
+                let profile_url = 'https://linkedin.com' + _profile_url;
+                await page.goto(profile_url);
+                await delay(2000);
+
+                let locationElm = await page.$(NORMAL_LOCATION_SELECTOR);
+                let location = await page.evaluate(locationElm => locationElm.textContent, locationElm);
+                location = location.replace(/\s/g, '')
+                newChatHistory['location'] = location
+                console.log("location: ", location)
+                newChatHistory['business_history'] = {};
+
+                if (await page.$$(NORMAL_HISTORY_LIST_SELECTOR) != null) {
+                    let companyElms = await page.$$(NORMAL_HISTORY_LIST_SELECTOR);
+
+                    let firstRoleHistory = companyElms[0];
+                    try {
+                        console.log("yes")
+                        let role = await firstRoleHistory.$eval(NORMAL_BACKGROUND_ROLE_SELECTOR, i => i.innerHTML);
+                        let company_name = await firstRoleHistory.$eval(NORMAL_BACKGROUND_COMPANY_SELECTOR, i => i.innerHTML);
+                        company_name = company_name.replace('<!---->', '')
+                        company_name = company_name.replace(/\s/g, '');
+                        if (company_name.indexOf('<span') > -1) {
+                            company_name = company_name.split('<span')[0]
+                        }
+                        console.log("role: ", role)
+                        console.log("company_name: ", company_name)
+                        let business_history = {
+                            company: company_name,
+                            role: role
+                        };
+                        newChatHistory['business_history'] = business_history;
+
+                    } catch (e) {
+
+                        try {
+                            console.log("no")
+                            let company_name = await firstRoleHistory.$eval(NORMAL_HISTORY_INFO_MULTIROLES_COMPANY_SELECTOR, i => i.innerHTML);
+                            company_name = company_name.replace('<!---->', '')
+                            if (company_name.indexOf('<span') > -1) {
+                                company_name = company_name.split('<span')[0]
+                            }
+
+                            if (await page.$$(NORMAL_HISTORY_INFO_MULTIROLES_ROLE_SELECTOR) != null) {
+                                let multiRoleElms = await page.$$(NORMAL_HISTORY_INFO_MULTIROLES_ROLE_SELECTOR);
+                                let firstRoleElm = multiRoleElms[0];
+                                let role = await firstRoleElm.$eval('h3 span:nth-child(2)', i => i.innerHTML);
+
+                                let business_history = {
+                                    company: company_name,
+                                    role: role
+                                };
+                                newChatHistory['business_history'] = business_history;
+
+                                console.log("first role: ", role)
+                                console.log("company_name exception: ", company_name)
+                            }
+
+                        } catch (e) {
+                            console.log("error of normal: ", e)
+                        }
+
+                    }
+
+
+                    // let phoneInfo = await page.evaluate(firstRoleHistory => firstRoleHistory.textContent, firstRoleHistory);
+
+                }
+
+                const contactElm = await page.$(NORMAL_CONTACT_SELECTOR);
+                await contactElm.click({ clickCount: 1 });
+                await delay(3000);
+
+
+                if (await page.$(NORMAL_CONTACT_EMAIL_SELECTOR) !== null) {
+                    let contactEmailElm = await page.$(NORMAL_CONTACT_EMAIL_SELECTOR);
+                    let contactEmailaddress = await page.evaluate(contactEmailElm => contactEmailElm.textContent, contactEmailElm);
+                    contactEmailaddress = contactEmailaddress.replace(/\s/g, '');
+                    newChatHistory['email'] = contactEmailaddress
+                    console.log("contactEmailaddress: ", contactEmailaddress)
+                }
+
+                if (await page.$(NORMAL_CONTACT_BIRTH_SELECTOR) !== null) {
+                    let contactBirthElm = await page.$(NORMAL_CONTACT_BIRTH_SELECTOR);
+                    let contactBirthday = await page.evaluate(contactBirthElm => contactBirthElm.textContent, contactBirthElm);
+                    contactBirthday = contactBirthday.replace(/\s/g, '');
+                    newChatHistory['birthday'] = contactBirthday;
+                    // console.log("contactBirthday: ", contactBirthday)
+                }
+
+                if (await page.$(NORMAL_CONTACT_WHENCONNECTED_SELECTOR) !== null) {
+                    let contactWhenConnectedElm = await page.$(NORMAL_CONTACT_WHENCONNECTED_SELECTOR);
+                    let contactWhenConnected = await page.evaluate(contactWhenConnectedElm => contactWhenConnectedElm.textContent, contactWhenConnectedElm);
+                    contactWhenConnected = contactWhenConnected.replace(/\s/g, '');
+                    newChatHistory['connected_date'] = contactWhenConnected;
+                    // console.log("contactWhenConnected: ", contactWhenConnected)
+                }
+
+                if (await page.$(NORMAL_CONTACT_TWITTER_SELECTOR) !== null) {
+                    let contactTwitterElm = await page.$(NORMAL_CONTACT_TWITTER_SELECTOR);
+                    let contactTwitter = await page.evaluate(contactTwitterElm => contactTwitterElm.textContent, contactTwitterElm);
+                    contactTwitter = contactTwitter.replace(/\s/g, '');
+                    newChatHistory['twitter'] = contactTwitter;
+                    // console.log("contactTwitter: ", contactTwitter)
+                }
+
+                if (await page.$$(NORMAL_CONTACT_PHONE_SELECTOR) != null) {
+                    let phoneElms = await page.$$(NORMAL_CONTACT_PHONE_SELECTOR);
+
+                    let contactPhone = ''
+
+                    for (let k = 0; k < phoneElms.length; k++) {
+                        let phoneElm = phoneElms[k];
+                        let phoneInfo = await page.evaluate(phoneElm => phoneElm.textContent, phoneElm);
+                        phoneInfo = phoneInfo.replace(/\s/g, '');
+                        contactPhone += phoneInfo
+                    }
+
+                    newChatHistory['phone'] = contactPhone;
+                    // console.log("contactPhone: ", contactPhone)
+                }
+
+                if (await page.$$(NORMAL_CONTACT_WEBSITE_SELECTOR) !== null) {
+
+                    let websitesElms = await page.$$(NORMAL_CONTACT_WEBSITE_SELECTOR);
+                    let websites = [];
+
+                    for (let k = 0; k < websitesElms.length; k++) {
+                        let websitesItemElm = websitesElms[k];
+
+                        let website_url = await websitesItemElm.$eval(NORMAL_CONTACT_WEBSITE_URL_SELECTOR, i => i.innerHTML);
+                        website_url = website_url.replace(/\s/g, '');
+                        website_url = website_url.replace('&nbsp;', '')
+                        let website_type = await websitesItemElm.$eval(NORMAL_CONTACT_WEBSITE_TYPE_SELECTOR, i => i.innerHTML);
+                        website_type = website_type.replace(/\s/g, '');
+                        website_type = website_type.replace('(', '')
+                        website_type = website_type.replace(')', '')
+
+                        let websiteItem = {
+                            url: website_url,
+                            type: website_type
+                        }
+                        websites.push(websiteItem)
+                    }
+                    newChatHistory['websites'] = websites;
+                    // console.log("final websites: ", websites)
+                }
+
+                if (await page.$$(NORMAL_CONTACT_IM_SELECTOR) !== null) {
+
+                    let imElms = await page.$$(NORMAL_CONTACT_IM_SELECTOR);
+                    let ims = [];
+
+                    for (let k = 0; k < imElms.length; k++) {
+                        let imItemElm = imElms[k];
+
+                        let imId = await imItemElm.$eval(NORMAL_CONTACT_IM_ID_SELECTOR, i => i.innerHTML);
+                        imId = imId.replace(/\s/g, '');
+                        imId = imId.replace('&nbsp;', '')
+                        let im_type = await imItemElm.$eval(NORMAL_CONTACT_IM_TYPE_SELECTOR, i => i.innerHTML);
+                        im_type = im_type.replace(/\s/g, '');
+                        im_type = im_type.replace('(', '')
+                        im_type = im_type.replace(')', '')
+
+                        let imItem = {
+                            id: imId,
+                            type: im_type
+                        }
+                        ims.push(imItem)
+                    }
+
+                    newChatHistory['im_contact'] = ims;
+                    // console.log("final ims: ", ims)
+                }
+
+                newChatHistoryArr.push(newChatHistory)
+            }
+            let _data = JSON.stringify(newChatHistoryArr);
             fs.writeFileSync('results/' + type + '.json', _data);
 
             console.log("Normal Inbox success!")
-            return res.status(200).json({ status: 'success', info: chatHistoryArr }).end();
+            return res.status(200).json({ status: 'success', info: newChatHistoryArr }).end();
 
         } else {
 
             chatBoxURL = "https://www.linkedin.com/sales/inbox";
             await page.goto(chatBoxURL);
-            await delay(6000);
+            await delay(8000);
 
             let chatHistoryArr = [];
             if (person === 'all') {
                 if (await page.$$(CHATBOX_LIST_SELECTOR) !== null) {
 
                     const chatBoxItems = await page.$$(CHATBOX_LIST_SELECTOR);
-                    console.log("possible Pro chat history counts", chatBoxItems.length);
+
+                    //  chatBoxItems.length
 
                     for (let i = 0; i < chatBoxItems.length; i++) {
 
-                        // await page.screenshot({ path: 'item' + i + '.png' });
-
                         let chatBoxItem = chatBoxItems[i];
                         await chatBoxItem.$eval(CHATBOX_ITEM_SELECTOR, i => i.click());
-                        await delay(8000);
+                        await delay(4000);
+                        let msgUrl = await page.evaluate(() => document.location.href);
+                        msgUrl = msgUrl.replace('https://www.linkedin.com', '');
+
                         const chatHistoryContainers = await page.$$(PRO_CHATHISTORY_ONEITEM_SELECTOR);
-                        let profileLink = await page.$$eval(PRO_CHAT_PROFILE_SELECTOR, el => el.map(x => x.getAttribute("href")));
+                        let _profileLink = await page.$$eval(PRO_CHAT_PROFILE_SELECTOR, el => el.map(x => x.getAttribute("href")));
+                        let profileLink = _profileLink[0]
                         console.log("PRO profileLink: ", profileLink);
 
                         let profileName = await chatBoxItem.$eval(PRO_CHAT_PROFILE_NAME_SELECTOR, i => i.innerHTML);
-                        // profileName = profileName.replace(/\s/g, '');
                         profileName = profileName.trim();
-                        console.log("PRO profileName: ", profileName);
+
+                        let proProfileSubTitle = '';
+                        if (await page.$(PRO_CHAT_SUBTITLE_SELECTOR) != null) {
+                            let proProfileSubTitleElm = await page.$(PRO_CHAT_SUBTITLE_SELECTOR);
+                            proProfileSubTitle = await page.evaluate(proProfileSubTitleElm => proProfileSubTitleElm.textContent, proProfileSubTitleElm);
+                            proProfileSubTitle = proProfileSubTitle.trim();
+                        } else {
+                            proProfileSubTitle = 'Cannot find the title because you have not connected with this person';
+                        }
+
+                        let profileTiwitter = '';
+                        let profileMail = '';
+                        let profileTel = '';
+                        let profileSite = '';
+
+                        if (await page.$$(PRO_CHAT_CONVERSATION_INSIGHTS_LINK_SELECTOR) != null) {
+                            let proInsightsElms = await page.$$(PRO_CHAT_CONVERSATION_INSIGHTS_LINK_SELECTOR);
+
+                            for (let insightIndex = 0; insightIndex < proInsightsElms.length; insightIndex++) {
+                                let proInsightsElm = proInsightsElms[insightIndex];
+                                let proInsightsValue = await page.evaluate(anchor => anchor.getAttribute('href'), proInsightsElm);
+
+                                if (proInsightsValue.indexOf('twitter.com') > -1) {
+                                    profileTiwitter = proInsightsValue
+                                } else if (proInsightsValue.indexOf('tel:') > -1) {
+                                    profileTel = proInsightsValue;
+                                    profileTel = profileTel.replace('tel:', '')
+                                } else if (proInsightsValue.indexOf('mailto:') > -1) {
+                                    profileMail = proInsightsValue;
+                                    profileMail = profileMail.replace('mailto:', '');
+                                } else {
+                                    profileSite = proInsightsValue;
+                                }
+                            }
+                        }
 
                         let historyArr = [];
                         let iterateCnt = 0;
                         let textArr = [];
+
+                        console.log("total chat history lenght: ", chatHistoryContainers.length)
 
                         for (let j = 0; j < chatHistoryContainers.length; j++) {
 
@@ -790,7 +1157,7 @@ async function handleProcess8(type, person, res) {
                                 timeInfo = timeInfo.trim();
                                 timeInfo = dateInfo + ' ' + timeInfo;
                                 console.log("overalltime: ", timeInfo)
-                                console.log("i  value in try: ", i)
+
                                 let profileInfo = await chatHistoryElm.$eval(PRO_CHATHISTORY_PROFILE_SELECTOR, i => i.innerHTML);
 
                                 var text = '';
@@ -803,7 +1170,8 @@ async function handleProcess8(type, person, res) {
 
                                 profileItemObj['name'] = profileInfo;
                                 profileItemObj['time'] = timeInfo;
-                                profileItemObj['message'] = text
+                                profileItemObj['message'] = text;
+
                                 textArr.push(profileItemObj);
 
                             } catch (e) {
@@ -835,117 +1203,125 @@ async function handleProcess8(type, person, res) {
 
                         let chatHistory = {};
                         chatHistory["name"] = profileName;
-                        chatHistory["url"] = profileLink;
+                        chatHistory["profile_url"] = profileLink;
+                        chatHistory['msg_url'] = msgUrl
+                        chatHistory["title"] = proProfileSubTitle;
+                        chatHistory['email'] = profileMail;
+                        chatHistory['phone'] = profileTel;
+                        chatHistory['websites'] = profileSite;
+                        chatHistory['twitter'] = profileTiwitter;
                         chatHistory["ChatHistory"] = historyArr;
                         chatHistoryArr.push(chatHistory);
 
                     }
                 }
-
-            } else {
-
             }
-            let _data = JSON.stringify(chatHistoryArr);
+
+            let newChatHistoryArr = [];
+
+            for (let cnt = 0; cnt < chatHistoryArr.length; cnt++) {
+
+                let newChatHistory = chatHistoryArr[cnt];
+                newChatHistory['location'] = ''
+                newChatHistory['connected_date'] = '';
+                newChatHistory['profile2_url'] = '';
+                newChatHistory['business_history'] = {};
+
+                let _profile_url = newChatHistory.profile_url
+                let profile_url = 'https://linkedin.com' + _profile_url;
+                await page.goto(profile_url);
+                await delay(2000);
+
+                let locationElm = await page.$(PRO_CONTACT_LOCATION_SELECTOR);
+                let location = await page.evaluate(locationElm => locationElm.textContent, locationElm);
+                location = location.replace(/\s/g, '')
+                newChatHistory['location'] = location
+
+                let connectedDateElm = await page.$(PRO_CONTACT_CONNECTED_DATE_SELECTOR);
+                let connectedDate = await page.evaluate(connectedDateElm => connectedDateElm.textContent, connectedDateElm);
+                connectedDate = connectedDate.replace('Connection since', '')
+                connectedDate = connectedDate.trim();
+                console.log('pro connectedDate: ', connectedDate)
+                newChatHistory['connected_date'] = connectedDate
+
+                let menuElm = await page.$(PRO_CONTACT_RIGHT_MENU_SELECTOR);
+                await menuElm.click({ clickCount: 1 });
+                await delay(1000);
+
+                let viewOnLinkedinElm = await page.$(PRO_CONTACT_VIEW_ON_LINKEDIN_SELECTOR);
+                await viewOnLinkedinElm.click({ clickCount: 1 });
+                await delay(8000);
+
+                const pages = (await browser.pages())
+                const otherPage = pages[pages.length - 1];
+                let pageUrl = otherPage.url();
+                let profile2_url = pageUrl.replace('https://www.linkedin.com', '')
+                newChatHistory['profile2_url'] = profile2_url;
+
+                if (await otherPage.$$(NORMAL_HISTORY_LIST_SELECTOR) != null) {
+                    let companyElms = await otherPage.$$(NORMAL_HISTORY_LIST_SELECTOR);
+
+                    let firstRoleHistory = companyElms[0];
+                    try {
+                        console.log("yes")
+                        let role = await firstRoleHistory.$eval(NORMAL_BACKGROUND_ROLE_SELECTOR, i => i.innerHTML);
+                        let company_name = await firstRoleHistory.$eval(NORMAL_BACKGROUND_COMPANY_SELECTOR, i => i.innerHTML);
+                        company_name = company_name.replace('<!---->', '')
+                        company_name = company_name.replace(/\s/g, '');
+                        if (company_name.indexOf('<span') > -1) {
+                            company_name = company_name.split('<span')[0]
+                        }
+                        console.log("role for PRO: ", role)
+                        console.log("company_name for PRO: ", company_name)
+                        let business_history = {
+                            company: company_name,
+                            role: role
+                        };
+                        newChatHistory['business_history'] = business_history;
+
+                    } catch (e) {
+
+                        try {
+                            console.log("no")
+                            let company_name = await firstRoleHistory.$eval(NORMAL_HISTORY_INFO_MULTIROLES_COMPANY_SELECTOR, i => i.innerHTML);
+                            company_name = company_name.replace('<!---->', '')
+                            if (company_name.indexOf('<span') > -1) {
+                                company_name = company_name.split('<span')[0]
+                            }
+
+                            if (await otherPage.$$(NORMAL_HISTORY_INFO_MULTIROLES_ROLE_SELECTOR) != null) {
+                                let multiRoleElms = await otherPage.$$(NORMAL_HISTORY_INFO_MULTIROLES_ROLE_SELECTOR);
+                                let firstRoleElm = multiRoleElms[0];
+                                let role = await firstRoleElm.$eval('h3 span:nth-child(2)', i => i.innerHTML);
+
+                                let business_history = {
+                                    company: company_name,
+                                    role: role
+                                };
+                                newChatHistory['business_history'] = business_history;
+
+                                console.log("first role for PRO: ", role)
+                                console.log("company_name exception for PRO: ", company_name)
+                            }
+
+                        } catch (e) {
+                            console.log("error: ", e)
+                        }
+                    }
+                }
+
+                await otherPage.close();
+
+                newChatHistoryArr.push(newChatHistory)
+            }
+
+            let _data = JSON.stringify(newChatHistoryArr);
             fs.writeFileSync('results/' + type + '.json', _data);
 
             console.log("Pro Inbox success!")
-            return res.status(200).json({ status: 'success', info: chatHistoryArr }).end();
+            return res.status(200).json({ status: 'success', info: newChatHistoryArr }).end();
 
         }
-    }
-}
-
-async function handleProcessSpecial(count, message, res) {
-
-    await playTest("https://www.linkedin.com/login", res);
-    let messageBoxURL = "https://www.linkedin.com/messaging";
-
-    if (!warnFlag) {
-        await page.goto(messageBoxURL);
-        await delay(5000);
-        let messageBoxItems = await page.$$(MESSAGEBOX_LIST_SELECTOR);
-        console.log("Init size: ", messageBoxItems.length)
-        let messageBoxItem = messageBoxItems[2];
-        // await page.hover(MESSAGEBOX_LIST_SELECTOR)
-        // await page.screenshot({ path: 'hover.png' })
-
-        await page.waitForSelector(MESSAGEBOX_LIST_CONTAINER_SELECTOR);
-
-        await page.evaluate(() => {
-            const scrollableSection = document.querySelector(MESSAGEBOX_LIST_CONTAINER_SELECTOR);
-
-            scrollableSection.scrollTop = scrollableSection.offsetHeight;
-        });
-
-
-        // await page.keyboard.press('Space');
-        // await delay(2000);
-        // await page.keyboard.press('Space');
-        messageBoxItems = await page.$$(MESSAGEBOX_LIST_SELECTOR);
-        console.log("size after scrolling", messageBoxItems.length)
-
-        // if (await page.$$(MESSAGEBOX_LIST_SELECTOR) !== null) {
-
-        //     let messageBoxItems = await page.$$(MESSAGEBOX_LIST_SELECTOR);
-        //     // const totMsgBoxCntPerPackage = messageBoxItems.length;
-        //     const totMsgBoxCntPerPackage = 4;
-
-        //     let submitMsgCnt = 0;
-        //     for (let i = 0; i < totMsgBoxCntPerPackage; i++) {
-
-        //         let messageBoxItem = messageBoxItems[i];
-        //         await messageBoxItem.$eval(MESSAGEBOX_ITEM_SELECTOR, i => i.click());
-        //         await delay(2000);
-
-        //         if (await page.$(MESSAGEBOX_CONTAINER_SELECTOR) !== null) {
-
-        //             console.log("checking not found selector")
-        //             await page.click(MESSAGEBOX_CONTAINER_SELECTOR);
-        //             await page.keyboard.type(message);
-        //             await delay(1000);
-        //             const submitMsgBtn = await page.$(MESSAGE_SUBMIT_BTN_SELECTOR);
-        //             await submitMsgBtn.click({ clickCount: 1 });
-        //             await delay(1000);
-        //             submitMsgCnt++;
-        //         } else {
-        //             continue;
-        //         }
-        //     }
-
-        //     if (submitMsgCnt < count) {
-
-        //         let messageBoxItem = messageBoxItems[submitMsgCnt];
-        //         await messageBoxItem.$eval(MESSAGEBOX_ITEM_SELECTOR, i => i.click());
-        //         await messageBoxItem.$eval(MESSAGEBOX_ITEM_SELECTOR, i => i.click());
-
-        //         await page.keyboard.press('Space');
-        //         await page.keyboard.press('Space');
-        //         messageBoxItems = await page.$$(MESSAGEBOX_LIST_SELECTOR);
-
-        //         for (let i = submitMsgCnt; i < count; i++) {
-
-        //             let messageBoxItem = messageBoxItems[i];
-        //             await messageBoxItem.$eval(MESSAGEBOX_ITEM_SELECTOR, i => i.click());
-        //             await delay(2000);
-
-        //             if (await page.$(MESSAGEBOX_CONTAINER_SELECTOR) !== null) {
-
-        //                 await page.click(MESSAGEBOX_CONTAINER_SELECTOR);
-        //                 await page.keyboard.type(message);
-        //                 await delay(1000);
-        //                 const submitMsgBtn = await page.$(MESSAGE_SUBMIT_BTN_SELECTOR);
-        //                 await submitMsgBtn.click({ clickCount: 1 });
-        //                 await delay(1000);
-        //                 submitMsgCnt++;
-        //             } else {
-        //                 continue;
-        //             }
-        //         }
-        //     }
-        // }
-
-        console.log("message scrolling success!")
-        return res.status(200).json({ status: 'success', info: 'Completed' }).end();
     }
 }
 
@@ -1034,7 +1410,7 @@ app.use(haltOnTimedout)
 
 const port = 3006
 const path = require('path');
-const { group } = require('console');
+const { group, profile } = require('console');
 const { SSL_OP_COOKIE_EXCHANGE } = require('constants');
 const e = require('express');
 
@@ -1043,7 +1419,6 @@ app.engine('swig', swig.renderFile);
 app.set('view engine', 'swig');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(__dirname + '/public'));
-
 
 app.get('/first-login', async (req, res) => {
 
@@ -1092,6 +1467,7 @@ app.get('/normal-connections', async (req, res) => {
         password = req.query.password;
         let term = req.query.term;
         let count = req.query.count;
+
         await handleProcess1(term, count, res);
 
     } else {
@@ -1239,27 +1615,6 @@ app.get('/inbox', async (req, res) => {
         let person = req.query.person;
 
         await handleProcess8(type, person, res);
-
-    } else {
-        return res.status(400).json({ status: 'failure', info: 'No information Set' }).end();
-    }
-
-    if (!loginFailedFlag && warnFlag) {
-        return res.status(200).json({ status: 'success', info: warnmsg }).end();
-    }
-});
-
-app.get('/message-scroll', async (req, res) => {
-
-    // Special Process
-    if (req.query && req.query.email && req.query.password && req.query.count && req.query.message) {
-
-        email = req.query.email;
-        password = req.query.password;
-        let count = req.query.count;
-        let message = req.query.message;
-
-        await handleProcessSpecial(count, message, res);
 
     } else {
         return res.status(400).json({ status: 'failure', info: 'No information Set' }).end();
